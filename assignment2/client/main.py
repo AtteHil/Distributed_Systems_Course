@@ -26,8 +26,10 @@ class NotebookClient:
         searchTerm= input("Enter the search word from wikipedia: ")
         topic= input("Enter the topic you want this information to be added: ")
         information = self.server.findFromWikiApi(searchTerm, topic)
-        if information:
+        if information == 0:
             print("Data found and added to topic.")
+        else:
+            print("There was error")
         
 if __name__ == '__main__':
     client = NotebookClient()

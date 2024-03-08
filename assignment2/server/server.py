@@ -8,8 +8,21 @@ import requests
 class NoteBook:
     def __init__(self):
         self.database = "notebook.xml"
-        self.tree = ET.parse(self.database)
-        self.root = self.tree.getroot()
+        
+        try:
+            self.tree = ET.parse(self.database)
+            self.root = self.tree.getroot()
+        except FileNotFoundError:
+            ## Handle the case when the file doesn't exist
+            self.root = ET.Element('notebook')
+            self.tree = ET.ElementTree(self.root)
+            self.tree.write(self.database)
+        except ET.ParseError:
+            # Handle the case when the XML file is invalid
+            print("Invalid XML file. Creating a new one.")
+            self.root = ET.Element('notebook')
+            self.tree = ET.ElementTree(self.root)
+            self.tree.write(self.database)
         self.URL = "https://en.wikipedia.org/w/api.php"
         self.S = requests.Session()
     def printOut(self, topic):
@@ -50,11 +63,15 @@ class NoteBook:
             "limit": "3",
             "format": "json"
         }
-        R = self.S.get(url=self.URL, params=PARAMS)
-        if(R):
-            DATA = R.json()
-            self.addNote(topic, searchTerm, DATA[3][0])
-            
+        try:
+            R = self.S.get(url=self.URL, params=PARAMS)
+            if(R):
+                DATA = R.json()
+                self.addNote(topic, searchTerm, DATA[3][0])
+                return 0
+        except requests.RequestException as e:
+            print(f"Error making request: {e}")
+            return -1
         
     
     def makeNote(self,topic_elem, name, text, new):
